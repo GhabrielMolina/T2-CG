@@ -1,27 +1,10 @@
 """
-morph3d.py
-Sistema de Morphing Geométrico 3D (T2-CG)
-
-Este script implementa um sistema de morphing entre dois objetos 3D (.obj),
-seguindo os requisitos típicos de trabalhos de Computação Gráfica.
-
-Funcionalidades:
- - Leitura de arquivos OBJ (vértices e faces triangulares)
- - Normalização dos objetos (centralização e ajuste de escala)
- - Associação de faces por centroides (método sugerido no enunciado)
- - Interpolação linear (morphing) entre os dois objetos
- - Visualização em 3 janelas independentes (objeto 1, objeto 2 e morph)
-
 Controles:
   m -> abrir/iniciar a janela do morph
   SPACE -> pausar / retomar a animação
   r -> resetar a animação (voltar ao início)
   ESC -> sair
   ← → ↑ ↓ -> rotacionar os objetos
-
-Dependências:
- - PyOpenGL (OpenGL.GLUT, OpenGL.GLU, OpenGL.GL)
- - math
 """
 
 from OpenGL.GL import *
@@ -31,11 +14,8 @@ import sys
 import math
 import time
 
-# === Configurações iniciais: altere aqui os nomes dos OBJ que deseja usar ===
-OBJ_FILE_1 = "easy1.obj"
-OBJ_FILE_2 = "easy3.obj"
-# ===========================================================================
-
+OBJ_FILE_1 = "hard3.obj"
+OBJ_FILE_2 = "easy1.obj"
 
 # ============================================================
 # CLASSE Ponto
@@ -230,17 +210,21 @@ class MorphSystem:
         # Objetos 3D de entrada
         self.obj1 = Objeto3D()
         self.obj2 = Objeto3D()
+        
         # Dicionário de mapeamento: face do obj1 → face correspondente do obj2
         self.mapping = {}
+        
         # Parâmetros da animação
         self.num_frames = 100   # número de frames totais
         self.t = 0.0            # parâmetro de interpolação (0 a 1)
         self.frame = 0          # frame atual
         self.playing = False    # indica se a animação está rodando
+        
         # Referências às janelas OpenGL
         self.window1 = None
         self.window2 = None
         self.window3 = None
+        
         # Ângulos de rotação usados para interação com o teclado
         self.rotY = 0.0
         self.rotX = 0.0
@@ -341,9 +325,13 @@ class MorphSystem:
             f2 = self.obj2.faces[f_idx2]
             i0_1, i1_1, i2_1 = f1.indices0()
             i0_2, i1_2, i2_2 = f2.indices0()
+            
+            # Vértices do Obj1
             v1_0 = self.obj1.transformed_vertices[i0_1]
             v1_1 = self.obj1.transformed_vertices[i1_1]
             v1_2 = self.obj1.transformed_vertices[i2_1]
+            
+            # Vértices do Obj2
             v2_0 = self.obj2.transformed_vertices[i0_2]
             v2_1 = self.obj2.transformed_vertices[i1_2]
             v2_2 = self.obj2.transformed_vertices[i2_2]
@@ -378,6 +366,7 @@ def setup_projection(width, height):
     """Configura a projeção em perspectiva para manter o aspecto da janela."""
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
+    # Mantém a proporção (aspect ratio) (Requisito 1)
     aspect = float(width)/float(height) if height!=0 else 1.0
     gluPerspective(45.0, aspect, 0.1, 100.0)
     glMatrixMode(GL_MODELVIEW)
@@ -400,6 +389,7 @@ def display_obj(obj: Objeto3D, win_w, win_h):
     """
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
+    
     # Configura a câmera
     gluLookAt(0.0, 0.0, 2.5,   0.0, 0.0, 0.0,   0.0, 1.0, 0.0)
     glRotatef(morph.rotX, 1.0, 0.0, 0.0)
@@ -625,13 +615,23 @@ def main():
         file1 = OBJ_FILE_1
         file2 = OBJ_FILE_2
 
+    # Lógica de carregamento e preparação dos objetos
     morph.load_objects(file1, file2)
+    
+    # Inicializa o OpenGL/GLUT
     glutInit(sys.argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH)
+
+    # Cria as janelas iniciais
     create_window1()
     create_window2()
+    
+    # Define a função de animação
     glutIdleFunc(idle_func)
+    
     print("Controles: m=iniciar morph | SPACE=pause | r=reset | ESC=sair")
+    
+    # Inicia o loop principal do GLUT
     glutMainLoop()
 
 
